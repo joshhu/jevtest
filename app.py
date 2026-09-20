@@ -1,4 +1,4 @@
-"""互動式 demo 的後端：把同一份 state + questions 分別送給 Jev 與一般 LLM。
+"""情緒測謊器的後端：把同一份 state + questions 分別送給 Jev 與一般 LLM。
 
 金鑰只留在伺服器端；瀏覽器只會拿到上游的原始回應與伺服器量到的毫秒數。
 """

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>他說好是真的好嗎</title>
+<title>情緒測謊器</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -160,8 +160,8 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
 </head>
 <body>
 <main>
-  <h1>他說「好」，是真的好嗎？</h1>
-  <p class="lede">同一句話，字面上的意思和真正的意思常常不一樣。在對方的對話框裡打字，每停一下，整段對話就送給 Jev 一次，它回傳「對方真正的意思」各有多少機率。先試試「好」和「好。」差多少。</p>
+  <h1>情緒測謊器</h1>
+  <p class="lede">嘴上說「好」，心裡真的好嗎？打一句話，Jev 即時算出每種真心話的機率。先比比看「好」和「好。」。</p>
   <p id="banner" role="alert"></p>
 
   <div class="scenes" id="scenes"></div>
@@ -170,16 +170,16 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
       <div class="mine"><p class="who">你傳的</p><div class="bubble" id="youSaid"></div></div>
       <div class="theirs">
         <p class="who" id="theirName"></p>
-        <textarea id="reply" aria-label="對方的回覆" placeholder="在這裡打對方回的話" spellcheck="false"></textarea>
+        <textarea id="reply" aria-label="對方的回覆" placeholder="輸入對方的回覆" spellcheck="false"></textarea>
       </div>
-      <div class="starters" id="starters"><span>點一下，自動逐字打出來</span></div>
+      <div class="starters" id="starters"><span>點一句，自動逐字輸入</span></div>
     </div>
 
     <div class="readout">
       <div class="stats">
-        <div class="stat"><b id="sMs">0</b><span>這次來回（毫秒）</span></div>
-        <div class="stat"><b id="sCount">0</b><span>已經問了 Jev 幾次</span></div>
-        <div class="stat"><b id="sCost">$0</b><span>累計費用（美元）</span></div>
+        <div class="stat"><b id="sMs">0</b><span>毫秒</span></div>
+        <div class="stat"><b id="sCount">0</b><span>呼叫次數</span></div>
+        <div class="stat"><b id="sCost">$0</b><span>累計美元</span></div>
       </div>
       <p class="model" id="jevModel"></p>
       <div id="jevOut"></div>
@@ -187,8 +187,8 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
   </div>
 
   <section>
-    <h2>每多打一個字，機率怎麼變</h2>
-    <p class="note">橫軸是第幾次呼叫，縱軸是機率。滑鼠移到圖上，可以看那一次送出去的是哪句話。</p>
+    <h2>每個字怎麼改變機率</h2>
+    <p class="note">橫軸是呼叫次數，縱軸是機率。滑鼠移上去看當時送出的句子。</p>
     <div class="trace">
       <div class="trace-wrap" id="traceWrap">
         <svg id="traceSvg" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="各選項機率隨輸入變化的折線圖"></svg>
@@ -198,26 +198,26 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
   </section>
 
   <section>
-    <h2>順便再問 30 題，幾乎不會變慢</h2>
-    <p class="note">打字時送出的同一個 request 裡，除了上面三題，還多問了 30 題是非題。Jev 一次算完所有題目，不是一題一題寫，所以題數變成 30 倍，時間不會跟著變成 30 倍。</p>
+    <h2>多問 30 題，幾乎一樣快</h2>
+    <p class="note">同一個 request 另外附上 30 題是非題。Jev 一次算完全部，不用逐題作答。</p>
     <div class="many">
       <div class="many-head">
-        <label><input type="checkbox" id="manyOn" checked> 每次多問這 30 題</label>
+        <label><input type="checkbox" id="manyOn" checked> 附上這 30 題</label>
         <span id="manyStat"></span>
       </div>
       <div class="grid30" id="grid30"></div>
       <div class="bench">
-        <button type="button" id="runBench">現場實測：問 1、5、15、30 題各要多久</button>
+        <button type="button" id="runBench">實測 1、5、15、30 題的耗時</button>
         <div id="benchOut"></div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>模型給機率，程式做決定</h2>
-    <p class="note">指針是 Jev 對這一題有多確定。拖動兩個門檻，決定多確定才行動。猜錯的代價越高，行動的門檻就該拉得越高。</p>
+    <h2>模型給機率，程式下決定</h2>
+    <p class="note">指針是 Jev 的 confidence。拖動門檻，決定多確定才行動。猜錯代價越高，門檻越高。</p>
     <div class="gate">
-      <div class="gate-head"><label for="gateQuestion">看這一題</label><select id="gateQuestion"></select></div>
+      <div class="gate-head"><label for="gateQuestion">題目</label><select id="gateQuestion"></select></div>
       <div class="ruler">
         <div class="zones"><div class="z-human" id="zHuman"></div><div class="z-confirm" id="zConfirm"></div><div class="z-act" id="zAct"></div></div>
         <div class="ticks"><span>0</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1</span></div>
@@ -226,20 +226,20 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
         <div class="needle" id="needle" hidden><span id="needleLabel"></span></div>
       </div>
       <div class="gate-out">
-        <div><p class="decision" id="decision">還沒有答案</p><p class="thresholds" id="thresholds"></p></div>
+        <div><p class="decision" id="decision">尚無答案</p><p class="thresholds" id="thresholds"></p></div>
         <pre class="code" id="gateCode"></pre>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>同一題，問一般 LLM 一次</h2>
-    <p class="note">把現在這段對話和同一組問題（有勾選的話包含那 30 題），用文字 prompt 送給一般 LLM，要求它回 JSON。LLM 得把每一題的答案一個字一個字寫出來。</p>
+    <h2>同一題問一般 LLM</h2>
+    <p class="note">同一段對話、同一組問題，要求 LLM 回 JSON。它得把每個答案逐字寫出來。</p>
     <div class="llm">
       <div class="llm-head">
-        <button id="askLlm" type="button">把現在這句送給 LLM</button>
-        <div class="stat"><b id="llmMs">0</b><span>這次來回（毫秒）</span></div>
-        <div class="stat"><b id="llmCost">$0</b><span>這一次的費用（美元）</span></div>
+        <button id="askLlm" type="button">送給 LLM</button>
+        <div class="stat"><b id="llmMs">0</b><span>毫秒</span></div>
+        <div class="stat"><b id="llmCost">$0</b><span>美元</span></div>
       </div>
       <p class="model" id="llmModel" style="margin-top:10px"></p>
       <p id="llmCompare"></p>
@@ -248,10 +248,10 @@ details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--m
   </section>
 
   <section>
-    <h2>送出去的到底是什麼</h2>
-    <details><summary>改這個情境的 questions（JSON，改完直接生效）</summary><textarea id="questions" spellcheck="false"></textarea></details>
-    <details><summary>看最近一次送給 Jev 的 request</summary><pre id="rawReq">還沒有</pre></details>
-    <details><summary>看最近一次 Jev 的原始 response</summary><pre id="rawRes">還沒有</pre></details>
+    <h2>原始資料</h2>
+    <details><summary>編輯 questions（JSON，即時生效）</summary><textarea id="questions" spellcheck="false"></textarea></details>
+    <details><summary>最近一次 request</summary><pre id="rawReq">還沒有</pre></details>
+    <details><summary>最近一次 response</summary><pre id="rawRes">還沒有</pre></details>
   </section>
 </main>
 
@@ -315,7 +315,7 @@ const extraQuestions = (n = 30) => Object.fromEntries(Object.entries(EXTRA).slic
 const isExtra = (k) => k.startsWith("x:");
 
 const SERIES = ["var(--s0)", "var(--s1)", "var(--s2)", "var(--s3)"];
-const EMPTY_HINT = "還沒有內容。開始打字，或點左邊的句子。";
+const EMPTY_HINT = "打字，或點左邊的句子。";
 const $ = (id) => document.getElementById(id);
 const fmt = (n, d = 2) => Number(n).toFixed(d);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -407,7 +407,7 @@ function renderAnswers(questions) {
       v.innerHTML = `分數 <span class="num">${fmt(a.score, 1)}</span>，confidence <span class="num">${fmt(a.confidence)}</span>`;
     } else {
       box.append(bar("是", a.noul, a.noul >= 0.5), bar("否", 1 - a.noul, a.noul < 0.5));
-      v.textContent = "Noul 只回傳「是」的機率，沒有 confidence 欄位";
+      v.textContent = "Noul 只有機率，沒有 confidence";
     }
     box.append(v); out.append(box);
   }
@@ -430,7 +430,7 @@ function renderGrid(res) {
   });
   const stat = $("manyStat"); stat.replaceChildren();
   if (res) { const n = Object.keys(res.body.answers).length; const c = res.body.usage && res.body.usage.cost;
-    stat.append("這一次一共問了 ", el("b", null, String(n)), " 題，來回 ", el("b", null, String(Math.round(res.ms))), " ms" + (c != null ? `，費用 $${Number(c).toFixed(7)}` : "")); }
+    stat.append("本次 ", el("b", null, String(n)), " 題，", el("b", null, String(Math.round(res.ms))), " ms" + (c != null ? `，費用 $${Number(c).toFixed(7)}` : "")); }
 }
 $("runBench").addEventListener("click", async () => {
   const btn = $("runBench"), out = $("benchOut"); btn.disabled = true; out.replaceChildren();
@@ -446,7 +446,7 @@ $("runBench").addEventListener("click", async () => {
       fill.style.width = (r.ms / max * 100) + "%"; track.append(fill);
       row.append(el("span", null, `${r.n} 題`), track, el("span", "v", `${Math.round(r.ms)} ms` + (r.cost != null ? `  $${Number(r.cost).toFixed(7)}` : ""))); out.append(row); });
   }
-  if (rows.length === 4) out.append(el("p", "note", "每種題數只跑一次，數字包含到 OpenRouter 的網路來回，所以會有抖動。重點是它不會隨題數成比例變慢。"));
+  if (rows.length === 4) out.append(el("p", "note", "各跑一次，含網路來回，會有抖動。"));
   btn.disabled = false;
 });
 
@@ -464,7 +464,7 @@ function renderTrace(cursorIndex) {
   const key = traceKey();
   const pts = key ? history.filter(h => h.answers[key] && h.answers[key].type === "choice") : [];
   svg._pts = pts.length;
-  if (pts.length === 0) { $("traceCaption").textContent = "還沒有資料。"; return; }
+  if (pts.length === 0) { $("traceCaption").textContent = "尚無資料"; return; }
   const options = Object.keys(pts[pts.length - 1].answers[key].probabilities);
   const xOf = (i) => pts.length === 1 ? 0 : G.W * i / (pts.length - 1);
   const prob = (h, opt) => h.answers[key].probabilities[opt] ?? 0;
@@ -480,7 +480,7 @@ function renderTrace(cursorIndex) {
   ends.forEach(e => { e.y = Math.max(yOf(e.p), prev + 22); prev = e.y; });
   ends.forEach(e => { const t = el("span", "endlabel", `${e.opt} ${fmt(e.p)}`); t.style.top = pct(e.y); t.style.color = SERIES[e.s % 4]; wrap.append(t); });
   const a = pts[ci].answers[key];
-  $("traceCaption").replaceChildren(`第 ${ci + 1} 次送出的是「`, el("b", null, pts[ci].text), `」，判斷為「${a.choice}」，confidence ${fmt(a.confidence)}`);
+  $("traceCaption").replaceChildren(`第 ${ci + 1} 次：「`, el("b", null, pts[ci].text), `」→ ${a.choice}，confidence ${fmt(a.confidence)}`);
 }
 $("traceSvg").addEventListener("mousemove", (ev) => {
   const svg = $("traceSvg"); if (!svg._pts || svg._pts < 2) return;
@@ -500,7 +500,7 @@ function renderGate() {
   let lo = Number($("tLow").value), hi = Number($("tHigh").value);
   if (lo > hi) { if (document.activeElement === $("tLow")) { hi = lo; $("tHigh").value = hi; } else { lo = hi; $("tLow").value = lo; } }
   $("zHuman").style.width = (lo * 100) + "%"; $("zConfirm").style.width = ((hi - lo) * 100) + "%"; $("zAct").style.width = ((1 - hi) * 100) + "%";
-  $("thresholds").textContent = `低於 ${fmt(lo)} 不猜、直接問；${fmt(lo)} 到 ${fmt(hi)} 先試探；${fmt(hi)} 以上直接行動`;
+  $("thresholds").textContent = `低於 ${fmt(lo)} 直接問，${fmt(lo)} 到 ${fmt(hi)} 先試探，${fmt(hi)} 以上直接行動`;
   const key = $("gateQuestion").value, a = last && last.answers[key];
   let branch = -1, picked = "";
   if (a) {
@@ -513,7 +513,7 @@ function renderGate() {
   } else $("needle").hidden = true;
   const d = $("decision");
   d.className = "decision" + ["", " human", " confirm", " act"][branch + 1];
-  d.textContent = ["還沒有答案", "訊號太模糊，別猜，直接問清楚", `大概是「${picked}」，先試探一句`, `確定是「${picked}」，照這個處理`][branch + 1];
+  d.textContent = ["尚無答案", "太模糊，直接問", `可能是「${picked}」，先試探`, `確定是「${picked}」，直接行動`][branch + 1];
   const conf = a && a.type === "noul" ? "abs(answer.noul - 0.5) * 2" : "answer.confidence";
   const lines = [[`answer = response.answers["${key || "真正的意思"}"]`, -2], [`certainty = ${conf}`, -2], ["", -2],
     [`if certainty < ${fmt(lo)}:`, 0], ["    ask_directly()", 0],
@@ -535,29 +535,29 @@ function parseLlm(text) {
 function rawDetails(label, data) { const d = el("details"); d.append(el("summary", null, label), el("pre", null, typeof data === "string" ? data : JSON.stringify(data, null, 2))); return d; }
 $("askLlm").addEventListener("click", async () => {
   const questions = currentQuestions(); if (!questions) return;
-  if (!$("reply").value.trim()) { $("llmOut").replaceChildren(el("p", "error", "先在上面的對話框打一句話。")); return; }
+  if (!$("reply").value.trim()) { $("llmOut").replaceChildren(el("p", "error", "請先輸入對方的回覆。")); return; }
   const btn = $("askLlm"); btn.disabled = true; $("llmOut").replaceChildren(); $("llmCompare").textContent = "";
   const t0 = performance.now(), timer = setInterval(() => { $("llmMs").textContent = Math.round(performance.now() - t0); }, 31);
   const res = await post("/api/llm", { state: currentState(), questions });
   clearInterval(timer); btn.disabled = false;
   const out = $("llmOut");
-  if (!res.ok) { out.append(el("p", "error", res.error || `LLM 回了 HTTP ${res.status}`)); if (res.body) out.append(rawDetails("看原始回應", res.body)); return; }
+  if (!res.ok) { out.append(el("p", "error", res.error || `LLM 回了 HTTP ${res.status}`)); if (res.body) out.append(rawDetails("原始回應", res.body)); return; }
   $("llmMs").textContent = Math.round(res.ms);
   const llmCost = res.body.usage && res.body.usage.cost;
   $("llmCost").textContent = llmCost != null ? "$" + Number(llmCost).toFixed(6) : "沒有回報";
   if (count > 0) {
-    let msg = `LLM 回答這一次的時間，Jev 大約可以回答 ${Math.max(1, Math.round(res.ms / (msTotal / count)))} 次`;
-    if (llmCost != null && costSeen && cost > 0) msg += `；這一次的費用，Jev 大約可以回答 ${Math.max(1, Math.round(llmCost / (cost / count)))} 次`;
+    let msg = `同樣的時間，Jev 可答 ${Math.max(1, Math.round(res.ms / (msTotal / count)))} 次`;
+    if (llmCost != null && costSeen && cost > 0) msg += `；同樣的費用，可答 ${Math.max(1, Math.round(llmCost / (cost / count)))} 次`;
     $("llmCompare").textContent = msg + "。";
   }
   const text = res.body.choices?.[0]?.message?.content ?? "";
   const { data, how } = parseLlm(text);
   const checks = el("ul", "checks"); const add = (c, m) => checks.append(el("li", c, m));
-  add(how === "strict" ? "good" : how === "cleaned" ? "warn" : "bad", how === "strict" ? "輸出可以直接 JSON.parse" : how === "cleaned" ? "要先清掉 markdown 圍欄或多餘文字才能解析" : "輸出無法解析成 JSON");
+  add(how === "strict" ? "good" : how === "cleaned" ? "warn" : "bad", how === "strict" ? "可直接 JSON.parse" : how === "cleaned" ? "要先清掉 markdown 圍欄才能解析" : "無法解析成 JSON");
   if (data) {
     const extras = Object.keys(questions).filter(isExtra);
     if (extras.length) { const okN = extras.filter(k => data[k] && typeof data[k].answer === "boolean").length;
-      add(okN === extras.length ? "good" : "bad", `附加的 ${extras.length} 題是非題，有 ${okN} 題的格式正確`); }
+      add(okN === extras.length ? "good" : "bad", `附加 ${extras.length} 題，${okN} 題格式正確`); }
     for (const [key, q] of Object.entries(questions)) {
       if (isExtra(key)) continue;
       if (!(key in data)) { add("bad", `沒有回答「${key}」`); continue; }
@@ -565,16 +565,16 @@ $("askLlm").addEventListener("click", async () => {
       if (q.type === "choice") valid = Object.keys(q.criteria || {}).includes(ans);
       if (q.type === "score") valid = Number.isInteger(ans) && ans >= 0 && ans < (q.criteria || []).length;
       if (q.type === "noul") valid = typeof ans === "boolean";
-      add(valid ? "good" : "bad", `${key}：${JSON.stringify(ans)}，自己回報的 confidence ${(data[key] ?? {}).confidence ?? "沒有給"}${valid ? "" : "（答案不在允許的範圍內）"}`);
+      add(valid ? "good" : "bad", `${key}：${JSON.stringify(ans)}，自報 confidence ${(data[key] ?? {}).confidence ?? "無"}${valid ? "" : "（不在選項內）"}`);
     }
-    add("warn", "每題只有一個答案和一個自己寫的數字，沒有各選項的機率，也沒有校準過");
+    add("warn", "confidence 是模型自己寫的數字，沒有各選項機率，也未校準");
   }
-  out.append(checks, rawDetails("看 LLM 的原始輸出", text), rawDetails("看送出的 request", res.request));
+  out.append(checks, rawDetails("LLM 原始輸出", text), rawDetails("送出的 request", res.request));
 });
 
 fetch("/api/config").then(r => r.json()).then(c => {
   $("jevModel").textContent = c.jev_model; $("llmModel").textContent = c.llm_model;
-  if (!c.has_key) $("banner").textContent = "伺服器沒有設定 OPENROUTER_API_KEY。請在 .env 填入金鑰後重新啟動。";
+  if (!c.has_key) $("banner").textContent = "缺少 OPENROUTER_API_KEY。請填入 .env 後重新啟動。";
 });
 renderGrid(null);
 loadScene(0);
