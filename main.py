@@ -34,7 +34,7 @@ QUESTIONS = {
         criteria=["平靜", "有點悶", "明顯不高興", "快要爆炸"],
     ),
     "該馬上關心": Noul(
-        instructions="The person who wrote they_replied expects you to reach out or change your plan right now",
+        instructions="You should reach out right now and show that you care about how they feel",
     ),
 }
 
