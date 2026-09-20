@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>他說好是真的好嗎</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EEF1F4;
+  --panel: #FFFFFF;
+  --ink: #16202B;
+  --muted: #5B6875;
+  --line: #CBD3DB;
+  --jev: #1F5FBF;
+  --jev-soft: #DCE7F7;
+  --llm: #6B4BA3;
+  --act: #1E7F5C;
+  --confirm: #B7791F;
+  --human: #B23A48;
+  --s0: #0072B2; --s1: #D55E00; --s2: #009E73; --s3: #CC79A7;
+  --sans: "IBM Plex Sans", "Noto Sans TC", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--sans); }
+main { max-width: 1180px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-size: 2.3rem; line-height: 1.2; font-weight: 600; margin: 0 0 10px; }
+h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 4px; }
+p.lede { margin: 0 0 28px; color: var(--muted); max-width: 44em; }
+p.note { margin: 0 0 16px; color: var(--muted); font-size: 0.9rem; max-width: 52em; }
+section { margin-top: 44px; }
+button, select, textarea, input { font-family: var(--sans); color: var(--ink); }
+button {
+  font-weight: 500; font-size: 0.9rem; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 4px; padding: 7px 14px; cursor: pointer;
+}
+button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+button:disabled { opacity: 0.55; cursor: progress; }
+textarea:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--jev); outline-offset: 2px; }
+#banner { color: var(--human); font-size: 0.9rem; margin: 0 0 12px; min-height: 1.4em; overflow-wrap: anywhere; }
+
+.scenes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+
+/* 對話 */
+.chat { background: var(--panel); border: 1px solid var(--line); padding: 20px; }
+.who { font-size: 0.8rem; color: var(--muted); margin: 0 0 4px; }
+.bubble { border-radius: 16px; padding: 10px 14px; font-size: 1.05rem; line-height: 1.5; max-width: 92%; }
+.mine .who { text-align: right; }
+.mine .bubble { background: var(--jev-soft); margin-left: auto; width: fit-content; border-bottom-right-radius: 4px; }
+.theirs { margin-top: 18px; }
+.theirs textarea {
+  display: block; width: 100%; min-height: 92px; resize: vertical; font-size: 1.25rem; line-height: 1.5;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px; border-bottom-left-radius: 4px; padding: 12px 14px;
+}
+.starters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.starters span { font-size: 0.85rem; color: var(--muted); width: 100%; }
+.starters button { font-size: 0.95rem; padding: 5px 12px; border-radius: 14px; }
+
+/* 即時讀數 */
+.readout { background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--jev); padding: 20px; min-width: 0; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 8px; }
+.stat b { display: block; font: 500 1.7rem/1.15 var(--mono); font-variant-numeric: tabular-nums; color: var(--jev); }
+.stat span { font-size: 0.8rem; color: var(--muted); }
+.model { font: 400 0.78rem var(--mono); color: var(--muted); margin: 0 0 8px; overflow-wrap: anywhere; }
+.empty { color: var(--muted); font-size: 0.95rem; margin: 12px 0 0; }
+.answer { border-top: 1px solid var(--line); padding: 14px 0 6px; }
+.answer h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; }
+.answer h3 code { font: 400 0.75rem var(--mono); color: var(--muted); margin-left: 8px; }
+.bar { display: grid; grid-template-columns: minmax(84px, 30%) 1fr 3.4em; gap: 10px; align-items: center; font-size: 0.9rem; margin-bottom: 5px; }
+.bar .name { line-height: 1.35; }
+.bar .track { height: 14px; background: var(--paper); position: relative; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--jev-soft); transition: width 0.25s ease-out; }
+.bar.picked .fill { background: var(--jev); }
+.bar.picked .name { font-weight: 600; }
+.bar .p { font: 400 0.8rem var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.verdict { font-size: 0.85rem; color: var(--muted); margin: 6px 0 0; }
+.verdict .num { font-family: var(--mono); color: var(--ink); }
+
+/* 軌跡 */
+.trace { background: var(--panel); border: 1px solid var(--line); padding: 20px 20px 12px; }
+.trace svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.trace .grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.trace .series { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.trace .cursor { stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.trace-wrap { position: relative; padding: 0 7.5em 0 2em; }
+.trace-wrap .ylab { position: absolute; left: 0; font: 400 0.7rem var(--mono); color: var(--muted); transform: translateY(-50%); }
+.trace-wrap .endlabel { position: absolute; right: 0; width: 7em; font-size: 0.8rem; font-weight: 500; white-space: nowrap; transform: translateY(-50%); }
+#traceCaption { font-size: 0.9rem; min-height: 1.6em; margin: 10px 0 0; color: var(--muted); }
+#traceCaption b { color: var(--ink); font-weight: 600; }
+
+/* 多題同時問 */
+.many { background: var(--panel); border: 1px solid var(--line); padding: 20px; }
+.many-head { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; margin-bottom: 16px; font-size: 0.9rem; }
+.many-head label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+#manyStat { color: var(--muted); }
+#manyStat b { font: 500 1rem var(--mono); color: var(--jev); }
+.grid30 { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 20px; }
+.dial { font-size: 0.85rem; color: var(--muted); }
+.dial.hot { color: var(--ink); font-weight: 600; }
+.dial .row { display: flex; justify-content: space-between; }
+.dial .row span:last-child { font: 400 0.75rem var(--mono); font-variant-numeric: tabular-nums; }
+.dial .track { height: 6px; background: var(--paper); position: relative; margin-top: 3px; }
+.dial .fill { position: absolute; inset: 0 auto 0 0; background: var(--jev-soft); transition: width 0.25s ease-out; }
+.dial.hot .fill { background: var(--jev); }
+.bench { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
+.bench-row { display: grid; grid-template-columns: 4em 1fr 12em; gap: 12px; align-items: center; font-size: 0.85rem; margin-top: 6px; }
+.bench-row .track { height: 14px; background: var(--paper); position: relative; }
+.bench-row .fill { position: absolute; inset: 0 auto 0 0; background: var(--jev); }
+.bench-row .v { font: 400 0.78rem var(--mono); color: var(--muted); }
+
+/* 門檻 */
+.gate { background: var(--panel); border: 1px solid var(--line); padding: 24px; }
+.gate-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
+select { font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+.ruler { position: relative; height: 96px; margin: 28px 8px 8px; }
+.zones { position: absolute; left: 0; right: 0; top: 34px; height: 22px; display: flex; }
+.zones .z-human { background: var(--human); } .zones .z-confirm { background: var(--confirm); } .zones .z-act { background: var(--act); }
+.ticks { position: absolute; left: 0; right: 0; top: 60px; display: flex; justify-content: space-between; font: 400 0.72rem var(--mono); color: var(--muted); }
+.needle { position: absolute; top: 0; width: 2px; height: 62px; background: var(--ink); transform: translateX(-1px); transition: left 0.3s cubic-bezier(.2,.8,.2,1); }
+.needle span { position: absolute; top: -4px; left: 8px; white-space: nowrap; font: 500 0.85rem var(--mono); }
+.needle.flip span { left: auto; right: 8px; }
+.ruler input[type=range] { position: absolute; left: -8px; width: calc(100% + 16px); top: 34px; height: 22px; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.ruler input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; cursor: ew-resize; width: 16px; height: 38px; background: var(--panel); border: 2px solid var(--ink); border-radius: 3px; }
+.ruler input[type=range]::-moz-range-thumb { pointer-events: auto; cursor: ew-resize; width: 12px; height: 34px; background: var(--panel); border: 2px solid var(--ink); border-radius: 3px; }
+.gate-out { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; align-items: start; margin-top: 20px; }
+.decision { font-size: 1.5rem; font-weight: 600; line-height: 1.3; margin: 0 0 6px; }
+.decision.act { color: var(--act); } .decision.confirm { color: var(--confirm); } .decision.human { color: var(--human); }
+.thresholds { font-size: 0.85rem; color: var(--muted); margin: 0; }
+pre { font: 400 0.78rem/1.55 var(--mono); background: var(--paper); border: 1px solid var(--line); padding: 12px; margin: 8px 0 0; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; }
+pre.code { margin: 0; white-space: pre; }
+pre.code .on { background: var(--ink); color: #fff; display: inline-block; width: 100%; }
+
+/* LLM 對照 */
+.llm { background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--llm); padding: 20px; }
+.llm .stat b { color: var(--llm); }
+.llm-head { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: end; }
+#askLlm { background: var(--ink); color: #fff; border-color: var(--ink); padding: 10px 20px; font-size: 0.95rem; }
+#llmCompare { font-size: 1.05rem; font-weight: 500; margin: 16px 0 0; }
+.checks { list-style: none; padding: 0; margin: 14px 0 0; font-size: 0.9rem; }
+.checks li { padding-left: 1.5em; position: relative; margin-bottom: 3px; }
+.checks li::before { position: absolute; left: 0; font-weight: 600; }
+.checks li.good::before { content: "✓"; color: var(--act); }
+.checks li.bad::before { content: "✗"; color: var(--human); }
+.checks li.warn::before { content: "!"; color: var(--confirm); }
+.error { color: var(--human); font-size: 0.95rem; margin: 12px 0 0; overflow-wrap: anywhere; }
+details { margin-top: 14px; font-size: 0.9rem; }
+summary { cursor: pointer; color: var(--muted); }
+details textarea { width: 100%; min-height: 260px; font: 400 0.8rem/1.55 var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 12px; margin-top: 8px; background: var(--panel); }
+
+@media (max-width: 800px) {
+  h1 { font-size: 1.7rem; }
+  .stage, .gate-out { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .bar .fill, .needle, .dial .fill { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>他說「好」，是真的好嗎？</h1>
+  <p class="lede">同一句話，字面上的意思和真正的意思常常不一樣。在對方的對話框裡打字，每停一下，整段對話就送給 Jev 一次，它回傳「對方真正的意思」各有多少機率。先試試「好」和「好。」差多少。</p>
+  <p id="banner" role="alert"></p>
+
+  <div class="scenes" id="scenes"></div>
+  <div class="stage">
+    <div class="chat">
+      <div class="mine"><p class="who">你傳的</p><div class="bubble" id="youSaid"></div></div>
+      <div class="theirs">
+        <p class="who" id="theirName"></p>
+        <textarea id="reply" aria-label="對方的回覆" placeholder="在這裡打對方回的話" spellcheck="false"></textarea>
+      </div>
+      <div class="starters" id="starters"><span>點一下，自動逐字打出來</span></div>
+    </div>
+
+    <div class="readout">
+      <div class="stats">
+        <div class="stat"><b id="sMs">0</b><span>這次來回（毫秒）</span></div>
+        <div class="stat"><b id="sCount">0</b><span>已經問了 Jev 幾次</span></div>
+        <div class="stat"><b id="sCost">$0</b><span>累計費用（美元）</span></div>
+      </div>
+      <p class="model" id="jevModel"></p>
+      <div id="jevOut"></div>
+    </div>
+  </div>
+
+  <section>
+    <h2>每多打一個字，機率怎麼變</h2>
+    <p class="note">橫軸是第幾次呼叫，縱軸是機率。滑鼠移到圖上，可以看那一次送出去的是哪句話。</p>
+    <div class="trace">
+      <div class="trace-wrap" id="traceWrap">
+        <svg id="traceSvg" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="各選項機率隨輸入變化的折線圖"></svg>
+      </div>
+      <p id="traceCaption"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>順便再問 30 題，幾乎不會變慢</h2>
+    <p class="note">打字時送出的同一個 request 裡，除了上面三題，還多問了 30 題是非題。Jev 一次算完所有題目，不是一題一題寫，所以題數變成 30 倍，時間不會跟著變成 30 倍。</p>
+    <div class="many">
+      <div class="many-head">
+        <label><input type="checkbox" id="manyOn" checked> 每次多問這 30 題</label>
+        <span id="manyStat"></span>
+      </div>
+      <div class="grid30" id="grid30"></div>
+      <div class="bench">
+        <button type="button" id="runBench">現場實測：問 1、5、15、30 題各要多久</button>
+        <div id="benchOut"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>模型給機率，程式做決定</h2>
+    <p class="note">指針是 Jev 對這一題有多確定。拖動兩個門檻，決定多確定才行動。猜錯的代價越高，行動的門檻就該拉得越高。</p>
+    <div class="gate">
+      <div class="gate-head"><label for="gateQuestion">看這一題</label><select id="gateQuestion"></select></div>
+      <div class="ruler">
+        <div class="zones"><div class="z-human" id="zHuman"></div><div class="z-confirm" id="zConfirm"></div><div class="z-act" id="zAct"></div></div>
+        <div class="ticks"><span>0</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1</span></div>
+        <input type="range" id="tLow" min="0" max="1" step="0.01" value="0.5" aria-label="低於這個值就直接問清楚">
+        <input type="range" id="tHigh" min="0" max="1" step="0.01" value="0.85" aria-label="高於這個值就直接行動">
+        <div class="needle" id="needle" hidden><span id="needleLabel"></span></div>
+      </div>
+      <div class="gate-out">
+        <div><p class="decision" id="decision">還沒有答案</p><p class="thresholds" id="thresholds"></p></div>
+        <pre class="code" id="gateCode"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>同一題，問一般 LLM 一次</h2>
+    <p class="note">把現在這段對話和同一組問題（有勾選的話包含那 30 題），用文字 prompt 送給一般 LLM，要求它回 JSON。LLM 得把每一題的答案一個字一個字寫出來。</p>
+    <div class="llm">
+      <div class="llm-head">
+        <button id="askLlm" type="button">把現在這句送給 LLM</button>
+        <div class="stat"><b id="llmMs">0</b><span>這次來回（毫秒）</span></div>
+        <div class="stat"><b id="llmCost">$0</b><span>這一次的費用（美元）</span></div>
+      </div>
+      <p class="model" id="llmModel" style="margin-top:10px"></p>
+      <p id="llmCompare"></p>
+      <div id="llmOut"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>送出去的到底是什麼</h2>
+    <details><summary>改這個情境的 questions（JSON，改完直接生效）</summary><textarea id="questions" spellcheck="false"></textarea></details>
+    <details><summary>看最近一次送給 Jev 的 request</summary><pre id="rawReq">還沒有</pre></details>
+    <details><summary>看最近一次 Jev 的原始 response</summary><pre id="rawRes">還沒有</pre></details>
+  </section>
+</main>
+
+<script>
+const SCENES = [
+  {
+    name: "另一半",
+    them: "另一半回你",
+    context: { relationship: "交往三年的另一半", you_said: "我今天跟同事聚餐，會晚點回家喔" },
+    starters: ["好", "好。", "好啊～玩得開心", "沒事，你去忙吧", "隨便你", "你開心就好"],
+    questions: {
+      "真正的意思": { type: "choice", instructions: "What is the real feeling behind they_replied, given relationship and you_said?", criteria: {
+        "真的沒事": "Genuinely fine, nothing hidden",
+        "有點失落": "A bit disappointed or lonely, but not angry",
+        "在生氣": "Angry or resentful, saying the opposite of what they mean",
+        "在試探你": "Testing whether you will notice and care" } },
+      "火氣": { type: "score", instructions: "How upset is the person who wrote they_replied", criteria: ["平靜", "有點悶", "明顯不高興", "快要爆炸"] },
+      "該馬上關心": { type: "noul", instructions: "The person who wrote they_replied expects you to reach out or change your plan right now" }
+    }
+  },
+  {
+    name: "主管",
+    them: "主管回你",
+    context: { relationship: "你的直屬主管", you_said: "這個需求我評估大概要三週，可以嗎？" },
+    starters: ["好，辛苦了", "再研究看看", "原則上可以", "你覺得呢？", "客戶那邊比較急喔", "三週喔…"],
+    questions: {
+      "真正的意思": { type: "choice", instructions: "What does the manager really mean by they_replied, in response to the three-week estimate in you_said?", criteria: {
+        "同意": "Approves the three-week estimate",
+        "委婉拒絕": "Politely refusing, expects a shorter timeline",
+        "還沒決定": "Undecided, deferring the decision",
+        "要你自己縮短": "Hinting that you should volunteer a shorter estimate" } },
+      "壓力": { type: "score", instructions: "How much pressure is the manager applying in they_replied", criteria: ["沒有壓力", "有點壓力", "明顯施壓", "最後通牒"] },
+      "該重估時程": { type: "noul", instructions: "You should come back with a revised, shorter estimate" }
+    }
+  },
+  {
+    name: "朋友",
+    them: "朋友回你",
+    context: { relationship: "兩年沒見的大學同學", you_said: "好久不見！這週末要不要一起吃個飯？" },
+    starters: ["好啊！幾點？", "改天吧", "我看一下時間再跟你說", "最近比較忙，下次一定", "哈哈好啊再約", "喔"],
+    questions: {
+      "真正的意思": { type: "choice", instructions: "What does the friend really mean by they_replied, in response to the invitation in you_said?", criteria: {
+        "真的想約": "Genuinely wants to meet and will make it happen",
+        "客套話": "Polite brush-off with no real intention to meet",
+        "沒空但有心": "Genuinely busy but does want to meet later",
+        "不想見面": "Does not want to meet" } },
+      "熱度": { type: "score", instructions: "How warm and enthusiastic is they_replied", criteria: ["冷淡", "普通", "友善", "很熱情"] },
+      "一個月內吃得到": { type: "noul", instructions: "This meetup will actually happen within a month" }
+    }
+  }
+];
+
+// 附加的 30 題是非題：key 以 "x:" 開頭，和主要三題分開顯示
+const EXTRA = { "生氣": "is angry", "難過": "is sad", "開心": "is happy", "在酸你": "is being sarcastic", "很累": "is tired", "吃醋": "is jealous",
+  "寂寞": "is lonely", "開玩笑": "is joking", "真心的": "is sincere", "口是心非": "is saying the opposite of what they mean",
+  "想要道歉": "wants an apology", "想要人陪": "wants company", "想靜一靜": "wants to be left alone", "在趕時間": "is in a hurry", "不耐煩": "is impatient",
+  "在敷衍": "is giving a perfunctory answer", "有禮貌": "is polite", "很正式": "is formal", "很親暱": "is affectionate", "很冷淡": "is cold",
+  "在擔心": "is worried", "鬆一口氣": "is relieved", "覺得無聊": "is bored", "起疑心": "is suspicious", "表示支持": "is supportive",
+  "想結束話題": "wants to end the conversation", "在施壓": "is applying pressure", "在拒絕": "is declining or refusing", "在答應": "is agreeing", "期待回覆": "expects a reply soon" };
+const extraQuestions = (n = 30) => Object.fromEntries(Object.entries(EXTRA).slice(0, n).map(([k, v]) => ["x:" + k, { type: "noul", instructions: `The person who wrote they_replied ${v}` }]));
+const isExtra = (k) => k.startsWith("x:");
+
+const SERIES = ["var(--s0)", "var(--s1)", "var(--s2)", "var(--s3)"];
+const EMPTY_HINT = "還沒有內容。開始打字，或點左邊的句子。";
+const $ = (id) => document.getElementById(id);
+const fmt = (n, d = 2) => Number(n).toFixed(d);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const svgEl = (tag, attrs) => { const e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+let scene = SCENES[0], seq = 0, shown = 0, count = 0, cost = 0, msTotal = 0, costSeen = false;
+let last = null, history = [], debounce = null, typing = null;
+
+function currentQuestions() {
+  try { const q = JSON.parse($("questions").value); $("banner").textContent = ""; return $("manyOn").checked ? { ...q, ...extraQuestions() } : q; }
+  catch (e) { $("banner").textContent = "questions 不是合法的 JSON：" + e.message; return null; }
+}
+function currentState() { return { ...scene.context, they_replied: $("reply").value }; }
+
+function loadScene(i) {
+  scene = SCENES[i]; stopTyping();
+  document.querySelectorAll("#scenes button").forEach((b, j) => b.setAttribute("aria-pressed", String(i === j)));
+  $("youSaid").textContent = scene.context.you_said;
+  $("theirName").textContent = `${scene.them}（${scene.context.relationship}）`;
+  $("questions").value = JSON.stringify(scene.questions, null, 2);
+  $("reply").value = "";
+  const box = $("starters"); box.querySelectorAll("button").forEach(b => b.remove());
+  scene.starters.forEach(text => { const b = el("button", null, text); b.type = "button"; b.onclick = () => typeOut(text); box.append(b); });
+  last = null; history = []; shown = seq;
+  $("jevOut").replaceChildren(el("p", "empty", EMPTY_HINT));
+  $("llmOut").replaceChildren(); $("llmCompare").textContent = "";
+  fillGateSelect(); renderTrace();
+}
+SCENES.forEach((s, i) => { const b = el("button", null, s.name); b.type = "button"; b.onclick = () => loadScene(i); $("scenes").append(b); });
+
+/* 逐字自動輸入：每個字送一次，讓軌跡圖看得到每一步 */
+function stopTyping() { if (typing) { clearInterval(typing); typing = null; } }
+function typeOut(text) {
+  stopTyping(); $("reply").value = ""; history = []; let i = 0;
+  const chars = Array.from(text);
+  typing = setInterval(() => { $("reply").value += chars[i++]; askJev(); if (i >= chars.length) stopTyping(); }, 420);
+}
+
+async function post(path, payload) {
+  try {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    return await r.json();
+  } catch (e) { return { ok: false, status: 0, ms: 0, error: "連不上本機伺服器：" + e.message }; }
+}
+async function askJev() {
+  const questions = currentQuestions(); if (!questions) return;
+  const text = $("reply").value;
+  if (!text.trim()) return;
+  const mine = ++seq, sceneAtSend = scene;
+  const res = await post("/api/jev", { state: currentState(), questions });
+  if (res.request) $("rawReq").textContent = JSON.stringify(res.request, null, 2);
+  if (!res.ok) { $("banner").textContent = res.error || `Jev 回了 HTTP ${res.status}：${JSON.stringify(res.body)}`; return; }
+  count++; msTotal += res.ms;
+  if (res.body.usage && res.body.usage.cost != null) { cost += Number(res.body.usage.cost); costSeen = true; }
+  $("sCount").textContent = count;
+  $("sCost").textContent = costSeen ? "$" + cost.toFixed(6) : "沒有回報";
+  if (mine < shown || sceneAtSend !== scene) return;   // 舊的回應比新的晚到，或已經換了情境：丟掉
+  shown = mine; last = res.body;
+  $("sMs").textContent = Math.round(res.ms);
+  $("jevModel").textContent = res.body.model || "";
+  $("rawRes").textContent = JSON.stringify(res.body, null, 2);
+  history.push({ text, answers: res.body.answers });
+  if (history.length > 80) history.shift();
+  renderAnswers(questions); fillGateSelect(true); renderTrace(); renderGrid(res);
+}
+$("reply").addEventListener("input", () => { stopTyping(); clearTimeout(debounce); debounce = setTimeout(askJev, 220); });
+$("manyOn").addEventListener("change", () => { renderGrid(null); askJev(); });
+$("questions").addEventListener("input", () => { clearTimeout(debounce); debounce = setTimeout(askJev, 600); });
+
+function bar(name, p, picked) {
+  const row = el("div", "bar" + (picked ? " picked" : ""));
+  const track = el("div", "track"), fill = el("div", "fill");
+  fill.style.width = (p * 100) + "%"; track.append(fill);
+  row.append(el("div", "name", name), track, el("div", "p", fmt(p)));
+  return row;
+}
+function renderAnswers(questions) {
+  const out = $("jevOut"); out.replaceChildren();
+  for (const [key, a] of Object.entries(last.answers || {})) {
+    if (isExtra(key)) continue;
+    const box = el("div", "answer"); const h = el("h3", null, key); h.append(el("code", null, a.type)); box.append(h);
+    const v = el("p", "verdict");
+    if (a.type === "choice") {
+      Object.keys((questions[key] || {}).criteria || a.probabilities).forEach(k => box.append(bar(k, a.probabilities[k] ?? 0, k === a.choice)));
+      v.innerHTML = `confidence <span class="num">${fmt(a.confidence)}</span>`;
+    } else if (a.type === "score") {
+      const top = Object.entries(a.probabilities).sort((x, y) => y[1] - x[1])[0][0];
+      Object.entries(a.probabilities).forEach(([k, p]) => { const lg = a.legend && a.legend[k]; box.append(bar(typeof lg === "string" ? lg : String(k), p, k === top)); });
+      v.innerHTML = `分數 <span class="num">${fmt(a.score, 1)}</span>，confidence <span class="num">${fmt(a.confidence)}</span>`;
+    } else {
+      box.append(bar("是", a.noul, a.noul >= 0.5), bar("否", 1 - a.noul, a.noul < 0.5));
+      v.textContent = "Noul 只回傳「是」的機率，沒有 confidence 欄位";
+    }
+    box.append(v); out.append(box);
+  }
+}
+
+/* 30 題的小指針 */
+function renderGrid(res) {
+  const grid = $("grid30");
+  if (!grid.children.length) Object.keys(EXTRA).forEach(k => {
+    const d = el("div", "dial"); d.dataset.key = "x:" + k;
+    const row = el("div", "row"); row.append(el("span", null, k), el("span", null, "–"));
+    const track = el("div", "track"); track.append(el("div", "fill")); d.append(row, track); grid.append(d);
+  });
+  const answers = res && $("manyOn").checked ? res.body.answers : null;
+  grid.querySelectorAll(".dial").forEach(d => {
+    const a = answers && answers[d.dataset.key], p = a ? a.noul : 0;
+    d.classList.toggle("hot", !!a && p >= 0.5);
+    d.querySelector(".fill").style.width = (p * 100) + "%";
+    d.querySelector(".row span:last-child").textContent = a ? fmt(p) : "–";
+  });
+  const stat = $("manyStat"); stat.replaceChildren();
+  if (res) { const n = Object.keys(res.body.answers).length; const c = res.body.usage && res.body.usage.cost;
+    stat.append("這一次一共問了 ", el("b", null, String(n)), " 題，來回 ", el("b", null, String(Math.round(res.ms))), " ms" + (c != null ? `，費用 $${Number(c).toFixed(7)}` : "")); }
+}
+$("runBench").addEventListener("click", async () => {
+  const btn = $("runBench"), out = $("benchOut"); btn.disabled = true; out.replaceChildren();
+  const state = { ...scene.context, they_replied: $("reply").value || scene.starters[0] }, rows = [];
+  for (const n of [1, 5, 15, 30]) {
+    const res = await post("/api/jev", { state, questions: extraQuestions(n) });
+    if (!res.ok) { out.append(el("p", "error", res.error || `Jev 回了 HTTP ${res.status}`)); break; }
+    count++; msTotal += res.ms; if (res.body.usage && res.body.usage.cost != null) { cost += Number(res.body.usage.cost); costSeen = true; }
+    $("sCount").textContent = count; if (costSeen) $("sCost").textContent = "$" + cost.toFixed(6);
+    rows.push({ n, ms: res.ms, cost: res.body.usage && res.body.usage.cost });
+    const max = Math.max(...rows.map(r => r.ms)); out.replaceChildren();
+    rows.forEach(r => { const row = el("div", "bench-row"), track = el("div", "track"), fill = el("div", "fill");
+      fill.style.width = (r.ms / max * 100) + "%"; track.append(fill);
+      row.append(el("span", null, `${r.n} 題`), track, el("span", "v", `${Math.round(r.ms)} ms` + (r.cost != null ? `  $${Number(r.cost).toFixed(7)}` : ""))); out.append(row); });
+  }
+  if (rows.length === 4) out.append(el("p", "note", "每種題數只跑一次，數字包含到 OpenRouter 的網路來回，所以會有抖動。重點是它不會隨題數成比例變慢。"));
+  btn.disabled = false;
+});
+
+/* 軌跡圖：第一個 choice 問題的各選項機率。線畫在 SVG，文字用 HTML 疊上去，才不會被拉伸變形 */
+const G = { W: 1000, H: 220, T: 10, B: 10 };
+function traceKey() { return last ? Object.keys(last.answers).find(k => last.answers[k].type === "choice") : null; }
+function renderTrace(cursorIndex) {
+  const svg = $("traceSvg"), wrap = $("traceWrap"); svg.replaceChildren();
+  wrap.querySelectorAll(".ylab, .endlabel").forEach(n => n.remove());
+  const ph = G.H - G.T - G.B, yOf = (p) => G.T + ph * (1 - p), pct = (yy) => (yy / G.H * 100) + "%";
+  [0, 0.5, 1].forEach(v => {
+    svg.append(svgEl("line", { class: "grid", x1: 0, x2: G.W, y1: yOf(v), y2: yOf(v) }));
+    const t = el("span", "ylab", String(v)); t.style.top = pct(yOf(v)); wrap.append(t);
+  });
+  const key = traceKey();
+  const pts = key ? history.filter(h => h.answers[key] && h.answers[key].type === "choice") : [];
+  svg._pts = pts.length;
+  if (pts.length === 0) { $("traceCaption").textContent = "還沒有資料。"; return; }
+  const options = Object.keys(pts[pts.length - 1].answers[key].probabilities);
+  const xOf = (i) => pts.length === 1 ? 0 : G.W * i / (pts.length - 1);
+  const prob = (h, opt) => h.answers[key].probabilities[opt] ?? 0;
+  options.forEach((opt, s) => {
+    const d = pts.map((h, i) => `${i ? "L" : "M"}${xOf(i).toFixed(1)},${yOf(prob(h, opt)).toFixed(1)}`).join(" ");
+    svg.append(svgEl("path", { class: "series", d: pts.length === 1 ? d + ` L${G.W},${yOf(prob(pts[0], opt)).toFixed(1)}` : d, stroke: SERIES[s % 4] }));
+  });
+  const ci = cursorIndex ?? pts.length - 1;
+  if (pts.length > 1) svg.append(svgEl("line", { class: "cursor", x1: xOf(ci), x2: xOf(ci), y1: G.T, y2: G.T + ph }));
+  // 右側直接標示每條線，互相推開避免重疊
+  const ends = options.map((opt, s) => ({ opt, s, p: prob(pts[ci], opt) })).sort((a, b) => b.p - a.p);
+  let prev = -99;
+  ends.forEach(e => { e.y = Math.max(yOf(e.p), prev + 22); prev = e.y; });
+  ends.forEach(e => { const t = el("span", "endlabel", `${e.opt} ${fmt(e.p)}`); t.style.top = pct(e.y); t.style.color = SERIES[e.s % 4]; wrap.append(t); });
+  const a = pts[ci].answers[key];
+  $("traceCaption").replaceChildren(`第 ${ci + 1} 次送出的是「`, el("b", null, pts[ci].text), `」，判斷為「${a.choice}」，confidence ${fmt(a.confidence)}`);
+}
+$("traceSvg").addEventListener("mousemove", (ev) => {
+  const svg = $("traceSvg"); if (!svg._pts || svg._pts < 2) return;
+  const box = svg.getBoundingClientRect();
+  renderTrace(Math.round(Math.min(1, Math.max(0, (ev.clientX - box.left) / box.width)) * (svg._pts - 1)));
+});
+$("traceSvg").addEventListener("mouseleave", () => renderTrace());
+
+/* 門檻刻度尺 */
+function fillGateSelect(keep) {
+  const sel = $("gateQuestion"), prev = sel.value; sel.replaceChildren();
+  Object.entries(last ? last.answers : {}).filter(([k]) => !isExtra(k)).forEach(([k, a]) => { const o = el("option", null, `${k}（${a.type}）`); o.value = k; sel.append(o); });
+  if (keep && prev && last && last.answers[prev]) sel.value = prev;
+  renderGate();
+}
+function renderGate() {
+  let lo = Number($("tLow").value), hi = Number($("tHigh").value);
+  if (lo > hi) { if (document.activeElement === $("tLow")) { hi = lo; $("tHigh").value = hi; } else { lo = hi; $("tLow").value = lo; } }
+  $("zHuman").style.width = (lo * 100) + "%"; $("zConfirm").style.width = ((hi - lo) * 100) + "%"; $("zAct").style.width = ((1 - hi) * 100) + "%";
+  $("thresholds").textContent = `低於 ${fmt(lo)} 不猜、直接問；${fmt(lo)} 到 ${fmt(hi)} 先試探；${fmt(hi)} 以上直接行動`;
+  const key = $("gateQuestion").value, a = last && last.answers[key];
+  let branch = -1, picked = "";
+  if (a) {
+    // Noul 沒有 confidence：用離 0.5 的距離換算成 0 到 1 的確定程度
+    const value = a.type === "noul" ? Math.abs(a.noul - 0.5) * 2 : a.confidence;
+    picked = a.type === "choice" ? a.choice : a.type === "score" ? `${key} ${fmt(a.score, 1)} 分` : `${key}：${a.noul >= 0.5 ? "是" : "否"}`;
+    branch = value < lo ? 0 : value < hi ? 1 : 2;
+    const n = $("needle"); n.hidden = false; n.style.left = (value * 100) + "%"; n.classList.toggle("flip", value > 0.7);
+    $("needleLabel").textContent = (a.type === "noul" ? "確定程度 " : "confidence ") + fmt(value);
+  } else $("needle").hidden = true;
+  const d = $("decision");
+  d.className = "decision" + ["", " human", " confirm", " act"][branch + 1];
+  d.textContent = ["還沒有答案", "訊號太模糊，別猜，直接問清楚", `大概是「${picked}」，先試探一句`, `確定是「${picked}」，照這個處理`][branch + 1];
+  const conf = a && a.type === "noul" ? "abs(answer.noul - 0.5) * 2" : "answer.confidence";
+  const lines = [[`answer = response.answers["${key || "真正的意思"}"]`, -2], [`certainty = ${conf}`, -2], ["", -2],
+    [`if certainty < ${fmt(lo)}:`, 0], ["    ask_directly()", 0],
+    [`elif certainty < ${fmt(hi)}:`, 1], ["    probe_gently(answer)", 1],
+    ["else:", 2], ["    act_on(answer)", 2]];
+  const code = $("gateCode"); code.replaceChildren();
+  lines.forEach(([t, b]) => code.append(el("span", b === branch ? "on" : null, t || " "), "\n"));
+}
+["tLow", "tHigh"].forEach(id => $(id).addEventListener("input", renderGate));
+$("gateQuestion").addEventListener("change", renderGate);
+
+/* LLM 對照 */
+function parseLlm(text) {
+  try { return { data: JSON.parse(text), how: "strict" }; } catch {}
+  const m = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+  if (m) { try { return { data: JSON.parse(m[1]), how: "cleaned" }; } catch {} }
+  return { data: null, how: "failed" };
+}
+function rawDetails(label, data) { const d = el("details"); d.append(el("summary", null, label), el("pre", null, typeof data === "string" ? data : JSON.stringify(data, null, 2))); return d; }
+$("askLlm").addEventListener("click", async () => {
+  const questions = currentQuestions(); if (!questions) return;
+  if (!$("reply").value.trim()) { $("llmOut").replaceChildren(el("p", "error", "先在上面的對話框打一句話。")); return; }
+  const btn = $("askLlm"); btn.disabled = true; $("llmOut").replaceChildren(); $("llmCompare").textContent = "";
+  const t0 = performance.now(), timer = setInterval(() => { $("llmMs").textContent = Math.round(performance.now() - t0); }, 31);
+  const res = await post("/api/llm", { state: currentState(), questions });
+  clearInterval(timer); btn.disabled = false;
+  const out = $("llmOut");
+  if (!res.ok) { out.append(el("p", "error", res.error || `LLM 回了 HTTP ${res.status}`)); if (res.body) out.append(rawDetails("看原始回應", res.body)); return; }
+  $("llmMs").textContent = Math.round(res.ms);
+  const llmCost = res.body.usage && res.body.usage.cost;
+  $("llmCost").textContent = llmCost != null ? "$" + Number(llmCost).toFixed(6) : "沒有回報";
+  if (count > 0) {
+    let msg = `LLM 回答這一次的時間，Jev 大約可以回答 ${Math.max(1, Math.round(res.ms / (msTotal / count)))} 次`;
+    if (llmCost != null && costSeen && cost > 0) msg += `；這一次的費用，Jev 大約可以回答 ${Math.max(1, Math.round(llmCost / (cost / count)))} 次`;
+    $("llmCompare").textContent = msg + "。";
+  }
+  const text = res.body.choices?.[0]?.message?.content ?? "";
+  const { data, how } = parseLlm(text);
+  const checks = el("ul", "checks"); const add = (c, m) => checks.append(el("li", c, m));
+  add(how === "strict" ? "good" : how === "cleaned" ? "warn" : "bad", how === "strict" ? "輸出可以直接 JSON.parse" : how === "cleaned" ? "要先清掉 markdown 圍欄或多餘文字才能解析" : "輸出無法解析成 JSON");
+  if (data) {
+    const extras = Object.keys(questions).filter(isExtra);
+    if (extras.length) { const okN = extras.filter(k => data[k] && typeof data[k].answer === "boolean").length;
+      add(okN === extras.length ? "good" : "bad", `附加的 ${extras.length} 題是非題，有 ${okN} 題的格式正確`); }
+    for (const [key, q] of Object.entries(questions)) {
+      if (isExtra(key)) continue;
+      if (!(key in data)) { add("bad", `沒有回答「${key}」`); continue; }
+      const ans = (data[key] ?? {}).answer; let valid = true;
+      if (q.type === "choice") valid = Object.keys(q.criteria || {}).includes(ans);
+      if (q.type === "score") valid = Number.isInteger(ans) && ans >= 0 && ans < (q.criteria || []).length;
+      if (q.type === "noul") valid = typeof ans === "boolean";
+      add(valid ? "good" : "bad", `${key}：${JSON.stringify(ans)}，自己回報的 confidence ${(data[key] ?? {}).confidence ?? "沒有給"}${valid ? "" : "（答案不在允許的範圍內）"}`);
+    }
+    add("warn", "每題只有一個答案和一個自己寫的數字，沒有各選項的機率，也沒有校準過");
+  }
+  out.append(checks, rawDetails("看 LLM 的原始輸出", text), rawDetails("看送出的 request", res.request));
+});
+
+fetch("/api/config").then(r => r.json()).then(c => {
+  $("jevModel").textContent = c.jev_model; $("llmModel").textContent = c.llm_model;
+  if (!c.has_key) $("banner").textContent = "伺服器沒有設定 OPENROUTER_API_KEY。請在 .env 填入金鑰後重新啟動。";
+});
+renderGrid(null);
+loadScene(0);
+</script>
+</body>
+</html>
